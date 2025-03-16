@@ -74,9 +74,19 @@ def execute_test(test_name, show_gui, update_prj):
 
     xelab_opts = f"work.{test_name}_tb {compile_glbl} -snapshot {test_name}_tb -prj {project_file} -timescale 1ns/1ps -L unisims_ver"
 
+    wcfg_files = glob.glob(os.path.join(test_path, "*.wcfg"))
+    wcfg_file = wcfg_files[0] if wcfg_files else None
+
+
     if show_gui:
-        subprocess.run(f'cmd.exe /c "{SETUP_CMD} xelab {xelab_opts} -debug typical"', cwd=BUILD_DIR)
-        subprocess.run(f'cmd.exe /c "{SETUP_CMD} xsim {test_name}_tb -gui -t {os.path.join(ROOT_DIR, "tools", "sim_cmd.tcl").replace("\\", "/")}"', cwd=BUILD_DIR)
+
+        if wcfg_file:
+            subprocess.run(f'cmd.exe /c "{SETUP_CMD} xelab {xelab_opts} -debug typical"', cwd=BUILD_DIR)
+            subprocess.run(f'cmd.exe /c "{SETUP_CMD} xsim {test_name}_tb -gui -view {wcfg_file} -t {os.path.join(ROOT_DIR, "tools", "sim_cmd.tcl").replace("\\", "/")}"', cwd=BUILD_DIR)
+        else:
+            subprocess.run(f'cmd.exe /c "{SETUP_CMD} xelab {xelab_opts} -debug typical"', cwd=BUILD_DIR)
+            subprocess.run(f'cmd.exe /c "{SETUP_CMD} xsim {test_name}_tb -gui -t {os.path.join(ROOT_DIR, "tools", "sim_cmd.tcl").replace("\\", "/")}"', cwd=BUILD_DIR)    
+    
     else:
         process = subprocess.run(f'cmd.exe /c "{SETUP_CMD} xelab {xelab_opts} -standalone -runall"',
                                  cwd=BUILD_DIR, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
