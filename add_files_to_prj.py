@@ -17,6 +17,7 @@ def generate_prj_file(test_name, sim_dir):
     project_dir = os.path.dirname(os.path.dirname(__file__))
     rtl_root = os.path.normpath(os.path.join(script_dir, "../rtl"))  
     common_dir = os.path.normpath(os.path.join(sim_dir, "common"))
+    fpga_dir = os.path.normpath(os.path.join(project_dir, "fpga"))
 
     sv_files = []
     v_files = []
@@ -40,6 +41,7 @@ def generate_prj_file(test_name, sim_dir):
 
     collect_files(rtl_root, "../../", sim_parent_dir) 
     collect_files(common_dir, "../", sim_dir)
+    collect_files(fpga_dir, "../", sim_dir)
 
     for item in os.listdir(prj_dir):
         full_path = os.path.join(prj_dir, item)
