@@ -130,6 +130,8 @@ def execute_test(test_name, show_gui, update_prj):
                 for line in f:
                     if any(keyword in line.lower() for keyword in ["fatal", "error"]):
                         print(colorama.Fore.RED + ">> " + line.strip())
+
+
 def run_all():
     """Run all available tests and summarize results."""
     tests = [name for name in os.listdir(SIM_DIR) if os.path.isdir(os.path.join(SIM_DIR, name))
