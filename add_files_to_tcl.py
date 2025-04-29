@@ -128,7 +128,7 @@ set target {TARGET_FPGA}
 #-----------------------------------------------------#
 #                    Design sources                   #
 #-----------------------------------------------------#
-set ip_files C:/Users/wojte/Documents/Saper_new/rtl/mouse/fifo/fifo_generator_0.xci
+set ip_files C:/Users/wojte/Documents/Saper_new/rtl/mouse/fifo/fifo_generator_1.xci
 """
 
     def write_section(comment, var_name, files):
