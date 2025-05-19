@@ -73,9 +73,8 @@ def update_generate_bitstream_tcl():
     using paths relative to fpga/.
     """
 
-    # Collect .xdc, .sv, .v, .vhd
     xdc_abs = collect_files_abs(FPGA_CONSTRAINTS_DIR, {".xdc"})
-    sv_abs, v_abs, vhdl_abs = [], [], []
+    xci_abs, sv_abs, v_abs, vhdl_abs = [], [], [], []
 
     sv_abs   += collect_files_abs(FPGA_RTL_DIR, {".sv"})
     v_abs    += collect_files_abs(FPGA_RTL_DIR, {".v"})
@@ -84,6 +83,8 @@ def update_generate_bitstream_tcl():
     sv_abs   += collect_files_abs(TOP_RTL_DIR,  {".sv"})
     v_abs    += collect_files_abs(TOP_RTL_DIR,  {".v"})
     vhdl_abs += collect_files_abs(TOP_RTL_DIR,  {".vhd", ".vhdl"})
+
+    xci_abs += collect_files_abs(TOP_RTL_DIR, {".xci"})
 
     # Collect memory .data files
     mem_abs = collect_files_abs(MEM_INIT_DIR, {".data"})
@@ -101,6 +102,7 @@ def update_generate_bitstream_tcl():
     v_files    = to_rel_fpga(v_abs)
     vhdl_files = to_rel_fpga(vhdl_abs)
     mem_files  = to_rel_fpga(mem_abs)
+    xci_files  = to_rel_fpga(xci_abs)
 
     header = f"""\
 # Copyright (C) 2023  AGH University of Science and Technology
@@ -128,7 +130,6 @@ set target {TARGET_FPGA}
 #-----------------------------------------------------#
 #                    Design sources                   #
 #-----------------------------------------------------#
-set ip_files C:/Users/wojte/Documents/Saper_new/rtl/mouse/fifo/fifo_generator_1.xci
 """
 
     def write_section(comment, var_name, files):
@@ -156,6 +157,7 @@ set ip_files C:/Users/wojte/Documents/Saper_new/rtl/mouse/fifo/fifo_generator_1.
                  f"# }}\n\n")
         return s
 
+    xci_section    = write_section("# Specify .xci files location", "ip_files", xci_files) 
     xdc_section    = write_section("# Specify .xdc files location", "xdc_files", xdc_files)
     sv_section     = write_section("# Specify SystemVerilog design files location", "sv_files", sv_files)
     verilog_section= write_section("# Specify Verilog design files location", "verilog_files", v_files)
@@ -163,6 +165,7 @@ set ip_files C:/Users/wojte/Documents/Saper_new/rtl/mouse/fifo/fifo_generator_1.
     mem_section    = write_section("# Specify files for a memory initialization", "mem_files", mem_files)
 
     new_tcl_content = (header 
+                       + xci_section
                        + xdc_section
                        + sv_section
                        + verilog_section
@@ -174,3 +177,4 @@ set ip_files C:/Users/wojte/Documents/Saper_new/rtl/mouse/fifo/fifo_generator_1.
         f.write(new_tcl_content)
 
     print(colorama.Fore.GREEN + f"[INFO] Updated {OUTPUT_TCL} with new file lists (relative to fpga/).")
+
