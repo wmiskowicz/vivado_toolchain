@@ -17,33 +17,14 @@ import colorama
 import time
 from add_files_to_prj import generate_prj_file
 
-ENV_FILE = ".env"
-ROOT_DIR = None
-VIVADO_SETUP = None
+from setup import VIVADO_SETUP, PROJECT_DIR
+
 
 MAX_SIM_TIME = 60 # seconds 
 
 colorama.init(autoreset=True)
 
-if os.path.exists(ENV_FILE):
-    with open(ENV_FILE, "r") as f:
-        for line in f:
-            key, value = line.strip().split("=")
-            value = value.strip('"')
-            if key == "ROOT_DIR":
-                ROOT_DIR = value
-            elif key == "VIVADO_SETUP":
-                VIVADO_SETUP = value
-
-if not ROOT_DIR:
-    print(colorama.Fore.YELLOW + "ROOT_DIR is not set. Run env.py first to initialize it.")
-    sys.exit(1)
-
-if not VIVADO_SETUP:
-    print(colorama.Fore.YELLOW + "VIVADO_SETUP is not set in .env. Run env.py first to initialize it.")
-    sys.exit(1)
-
-SIM_DIR = os.path.join(ROOT_DIR, "sim")
+SIM_DIR = os.path.join(PROJECT_DIR, "sim")
 BUILD_DIR = os.path.join(SIM_DIR, "build")
 
 SETUP_CMD = f'call "{VIVADO_SETUP}" && '
@@ -82,10 +63,10 @@ def execute_test(test_name, show_gui, update_prj):
 
         if wcfg_file:
             subprocess.run(f'cmd.exe /c "{SETUP_CMD} xelab {xelab_opts} -debug typical"', cwd=BUILD_DIR)
-            subprocess.run(f'cmd.exe /c "{SETUP_CMD} xsim {test_name}_tb -gui -view {wcfg_file} -t {os.path.join(ROOT_DIR, "tools", "sim_cmd.tcl").replace("\\", "/")}"', cwd=BUILD_DIR)
+            subprocess.run(f'cmd.exe /c "{SETUP_CMD} xsim {test_name}_tb -gui -view {wcfg_file} -t {os.path.join(PROJECT_DIR, "tools", "sim_cmd.tcl").replace("\\", "/")}"', cwd=BUILD_DIR)
         else:
             subprocess.run(f'cmd.exe /c "{SETUP_CMD} xelab {xelab_opts} -debug typical"', cwd=BUILD_DIR)
-            subprocess.run(f'cmd.exe /c "{SETUP_CMD} xsim {test_name}_tb -gui -t {os.path.join(ROOT_DIR, "tools", "sim_cmd.tcl").replace("\\", "/")}"', cwd=BUILD_DIR)    
+            subprocess.run(f'cmd.exe /c "{SETUP_CMD} xsim {test_name}_tb -gui -t {os.path.join(PROJECT_DIR, "tools", "sim_cmd.tcl").replace("\\", "/")}"', cwd=BUILD_DIR)    
     
     else:
         process = subprocess.run(f'cmd.exe /c "{SETUP_CMD} xelab {xelab_opts} -standalone -runall"',

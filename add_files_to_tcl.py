@@ -9,6 +9,8 @@
 import os
 import colorama
 
+from setup import *
+
 colorama.init(autoreset=True)
 
 # -------------------------------------------------------------------------
@@ -21,13 +23,6 @@ TARGET_FPGA  = "xc7a35tcpg236-1"
 # -------------------------------------------------------------------------
 # Search locations
 # -------------------------------------------------------------------------
-THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR     = os.path.abspath(os.path.join(THIS_SCRIPT_DIR, ".."))
-FPGA_DIR        = os.path.join(PROJECT_DIR, "fpga")
-
-FPGA_CONSTRAINTS_DIR = os.path.join(FPGA_DIR, "constraints")
-FPGA_RTL_DIR         = os.path.join(FPGA_DIR, "rtl")
-TOP_RTL_DIR          = os.path.join(PROJECT_DIR, "rtl")
 MEM_INIT_DIR         = os.path.join(PROJECT_DIR, "rtl")
 
 OUTPUT_TCL = os.path.join(FPGA_DIR, "scripts", "project_details.tcl")

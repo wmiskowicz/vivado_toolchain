@@ -12,34 +12,15 @@
 # ------------------------------------------------------------------------------
 
 import os
-import glob
 import subprocess
 import shutil
 import sys
 import colorama
+
 from add_files_to_tcl import update_generate_bitstream_tcl
+from setup import VIVADO_DIR, PROJECT_DIR
 
-ENV_FILE   = ".env"
-ROOT_DIR   = None
-VIVADO_DIR = None
 
-colorama.init(autoreset=True)
-
-if os.path.exists(ENV_FILE):
-    with open(ENV_FILE, "r") as f:
-        for line in f:
-            if line.startswith("ROOT_DIR="):
-                ROOT_DIR = line.strip().split("=")[1].strip('"')
-            elif line.startswith("VIVADO_DIR="):
-                VIVADO_DIR = line.strip().split("=")[1].strip('"')
-
-if not ROOT_DIR:
-    print(colorama.Fore.YELLOW + "ROOT_DIR is not set. Run env.py first to initialize it.")
-    sys.exit(1)
-
-if not VIVADO_DIR:
-    print(colorama.Fore.YELLOW + "VIVADO_DIR is not set. Run env.py first to initialize it.")
-    sys.exit(1)
 
 vivado_executable = os.path.join(VIVADO_DIR, "vivado.bat")
 
@@ -73,10 +54,10 @@ def main():
     update_generate_bitstream_tcl()
 
     # (2) Clean untracked files in the fpga directory
-    subprocess.run(["git", "clean", "-fXd", "fpga"], cwd=ROOT_DIR)
+    subprocess.run(["git", "clean", "-fXd", "fpga"], cwd=PROJECT_DIR)
 
     # (3) Run Vivado in TCL mode to generate the bitstream
-    fpga_dir   = os.path.join(ROOT_DIR, "fpga")
+    fpga_dir   = os.path.join(PROJECT_DIR, "fpga")
     main_tcl   = os.path.join(fpga_dir, "scripts", "generate_bitstream.tcl")
     command    = f'"{vivado_executable}" -mode tcl -source "{main_tcl}"'
     subprocess.run(command, shell=True, cwd=fpga_dir)
@@ -87,7 +68,7 @@ def main():
         print(colorama.Fore.RED + "Error: No bitstream (.bit) file found in fpga/build.")
         sys.exit(1)
 
-    results_dir = os.path.join(ROOT_DIR, "results")
+    results_dir = os.path.join(PROJECT_DIR, "results")
     os.makedirs(results_dir, exist_ok=True)
 
     for bitstream_file in bitstream_files:
@@ -95,9 +76,9 @@ def main():
     print(f"Copied bitstream(s) to {results_dir}")
 
     # Run warning summary script
-    warning_summary_script = os.path.join(ROOT_DIR, "tools", "warning_summary.py")
+    warning_summary_script = os.path.join(PROJECT_DIR, "tools", "warning_summary.py")
     if os.path.exists(warning_summary_script):
-        subprocess.run(["python", warning_summary_script], cwd=ROOT_DIR)
+        subprocess.run(["python", warning_summary_script], cwd=PROJECT_DIR)
     else:
         print("Warning: warning_summary.py not found in tools/ directory.")
 
