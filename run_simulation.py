@@ -15,9 +15,9 @@ import glob
 import argparse
 import colorama
 import time
-from add_files_to_prj import generate_prj_file
+from internals.add_files_to_prj import generate_prj_file
 
-from setup import VIVADO_SETUP, PROJECT_DIR
+from project_setup import VIVADO_SETUP, PROJECT_DIR
 
 
 MAX_SIM_TIME = 60 # seconds 
