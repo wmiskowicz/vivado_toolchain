@@ -47,12 +47,7 @@ class VivadoWrapper:
           shutil.copy(bitstream_file, results_dir)
       print(f"Copied bitstream(s) to {results_dir}")
 
-      # Run warning summary script
-      warning_summary_script = os.path.join(PROJECT_DIR, "tools", "warning_summary.py")
-      if os.path.exists(warning_summary_script):
-          subprocess.run(["python", warning_summary_script], cwd=PROJECT_DIR)
-      else:
-          print("Warning: warning_summary.py not found in tools/ directory.")
+      self.get_warning_summary()
 
       print(colorama.Fore.GREEN + "Bitstream generation and logging completed successfully.")
       

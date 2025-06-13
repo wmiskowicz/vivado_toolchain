@@ -99,32 +99,32 @@ class FileManager:
       xci_files  = to_rel_fpga(xci_abs)
 
       header = f"""\
-  # Copyright (C) 2023  AGH University of Science and Technology
-  # MTM UEC2
-  # Author: Piotr Kaczmarczyk
-  #
-  # Description:
-  # Project details required for generate_bitstream.tcl
-  # These files are auto-filled by generate_bitstream script.
-  # If you want to edit search paths or project parameters
-  # edit add_files_to_tcl file.
+# Copyright (C) 2023  AGH University of Science and Technology
+# MTM UEC2
+# Author: Piotr Kaczmarczyk
+#
+# Description:
+# Project details required for generate_bitstream.tcl
+# These files are auto-filled by generate_bitstream script.
+# If you want to edit search paths or project parameters
+# edit add_files_to_tcl file.
 
-  #-----------------------------------------------------#
-  #                   Project details                   #
-  #-----------------------------------------------------#
-  # Project name
-  set project_name {PROJECT_NAME}
+#-----------------------------------------------------#
+#                   Project details                   #
+#-----------------------------------------------------#
+# Project name
+set project_name {PROJECT_NAME}
 
-  # Top module name
-  set top_module {TOP_MODULE}
+# Top module name
+set top_module {TOP_MODULE}
 
-  # FPGA device
-  set target {TARGET_FPGA}
+# FPGA device
+set target {TARGET_FPGA}
 
-  #-----------------------------------------------------#
-  #                    Design sources                   #
-  #-----------------------------------------------------#
-  """
+#-----------------------------------------------------#
+#                    Design sources                   #
+#-----------------------------------------------------#
+"""
 
       def write_section(comment, var_name, files):
           """
