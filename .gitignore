@@ -48,3 +48,6 @@ pip-wheel-metadata/
 *.swp
 *.swo
 
+# Project specific
+images/
+
