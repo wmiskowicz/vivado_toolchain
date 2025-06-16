@@ -6,6 +6,7 @@
 # all project files. It's used by run_simulation script when executed with -prj flag.
 # ------------------------------------------------------------------------------
 import os
+from project_setup import *
 
 def generate_prj_file(test_name, sim_dir):
     prj_dir = os.path.join(sim_dir, test_name)
@@ -13,11 +14,9 @@ def generate_prj_file(test_name, sim_dir):
 
     prj_path = os.path.join(prj_dir, f"{test_name}.prj")
 
-    script_dir = os.path.dirname(__file__)
-    project_dir = os.path.dirname(os.path.dirname(__file__))
-    rtl_root = os.path.normpath(os.path.join(script_dir, "../rtl"))  
+    rtl_root = os.path.normpath(os.path.join(THIS_SCRIPT_DIR, "../rtl"))  
     common_dir = os.path.normpath(os.path.join(sim_dir, "common"))
-    fpga_dir = os.path.normpath(os.path.join(project_dir, "fpga"))
+    fpga_dir = os.path.normpath(os.path.join(PROJECT_DIR, "fpga"))
 
     sv_files = []
     v_files = []

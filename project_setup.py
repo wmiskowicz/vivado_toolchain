@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from project_setup import *
 
 PROJECT_NAME = "Saper_new"
@@ -9,7 +10,7 @@ TARGET_FPGA  = "xc7a35tcpg236-1"
 # Search locations
 # -------------------------------------------------------------------------
 THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR     = os.path.abspath(os.path.join(THIS_SCRIPT_DIR, ".."))
+PROJECT_DIR     = Path(THIS_SCRIPT_DIR).parent.resolve()
 FPGA_DIR        = os.path.join(PROJECT_DIR, "fpga")
 
 VIVADO_DIR=r"C:\Xilinx\Vivado\2023.1\bin"
