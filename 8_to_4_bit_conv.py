@@ -6,6 +6,6 @@ def rgb_8bit_to_4bit(r, g, b):
     return (r_4bit, g_4bit, b_4bit)
 
 # Example usage:
-color_8bit = (253, 215, 134)  # Your input color
+color_8bit = (237, 184, 101)  # Your input color
 color_4bit = rgb_8bit_to_4bit(*color_8bit)
 print(color_4bit)  # Output: (15, 13, 9)
