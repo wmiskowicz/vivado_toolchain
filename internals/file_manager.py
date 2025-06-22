@@ -9,21 +9,26 @@ colorama.init(autoreset=True)
 class FileManager:
 
   def __init__(self):
-    pass
+    
+    self.VIVADO_EXE = os.path.join(VIVADO_DIR, "vivado.bat")
 
   def list_bit_files(self, search_path="."):
-      """
-      Recursively searches for all .bit files in the given directory and subdirectories.
-      Prints the found files with absolute paths.
-      """
-      bit_files = []
+        """
+        Recursively searches for all .bit files in the given directory and subdirectories.
+        Prints the found files with absolute paths.
+        """
+        bit_files = []
 
-      for root, _, files in os.walk(search_path):
-          for file in files:
-              if file.endswith(".bit"):
-                  bit_files.append(os.path.abspath(os.path.join(root, file)))
+        for root, _, files in os.walk(search_path):
+            for file in files:
+                if file.endswith(".bit"):
+                    bit_files.append(os.path.abspath(os.path.join(root, file)))
+                    
+        if not bit_files:
+            raise Exception(colorama.Fore.RED + "Error: No bitstream (.bit) file found in fpga/build.")
+        
 
-      return bit_files
+        return bit_files
 
 
   def collect_files_abs(self, root_dir, extensions):
@@ -56,7 +61,7 @@ class FileManager:
       return sorted(pkg_if) + sorted(other)
 
 
-  def update_generate_bitstream_tcl(self):
+  def update_project_details_tcl(self):
       """
       Gathers XDC, SV, V, VHDL, and MEM (.data) files from:
         - fpga/constraints

@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from project_setup import *
 
 PROJECT_NAME = "Saper_new"
 TOP_MODULE   = "top_vga_basys3"

@@ -6,9 +6,12 @@ import colorama
 import glob
 import argparse
 import re
-from datetime import datetime
 
-from project_setup import VIVADO_DIR, PROJECT_DIR
+from pathlib import Path
+from datetime import datetime
+from time import perf_counter
+
+from project_setup import *
 from internals.file_manager import FileManager
 
 
@@ -16,54 +19,52 @@ class VivadoWrapper:
     def __init__(self):
       
         self.file_manager = FileManager()
+        
+        self.TOOLS_DIR = Path(__file__).resolve().parent
+        
+        self.bitstream_files = None
 
     def generate_bitstream(self):
-      vivado_executable = os.path.join(VIVADO_DIR, "vivado.bat")
 
-      if not os.path.exists(vivado_executable):
-        print(colorama.Fore.RED + f"Error: Vivado executable not found at {vivado_executable}.")
-        sys.exit(1)       # (1) Update the .tcl file with fresh list of sources
-      self.file_manager.update_generate_bitstream_tcl()
+        if not os.path.exists(self.file_manager.VIVADO_EXE):
+            print(colorama.Fore.RED + f"Error: Vivado executable not found at {self.file_manager.VIVADO_EXE}.")
+            sys.exit(1)
+        self.file_manager.update_project_details_tcl()
 
-      # (2) Clean untracked files in the fpga directory
-      subprocess.run(["git", "clean", "-fXd", "fpga"], cwd=PROJECT_DIR)
+        subprocess.run(["git", "clean", "-fXd", "fpga"], cwd=PROJECT_DIR)
 
-      # (3) Run Vivado in TCL mode to generate the bitstream
-      fpga_dir   = os.path.join(PROJECT_DIR, "fpga")
-      main_tcl   = os.path.join(fpga_dir, "scripts", "generate_bitstream.tcl")
-      command    = f'"{vivado_executable}" -mode tcl -source "{main_tcl}"'
-      subprocess.run(command, shell=True, cwd=fpga_dir)
+        # Generate bitstream
+        gen_bit_tcl   = os.path.join(self.TOOLS_DIR, "scripts", "generate_bitstream.tcl")
+        command    = f'"{self.file_manager.VIVADO_EXE}" -mode tcl -source "{gen_bit_tcl}"'
+        
+        start_t = perf_counter()
+        subprocess.run(command, shell=True, cwd=FPGA_DIR)
+        stop_t = perf_counter()
+        
+        time_sec = int(stop_t-start_t)
+        time_min = int(time_sec / 60)
+        time_sec = time_sec % 60
 
-      # (4) Copy generated bitstream to results directory
-      bitstream_files = self.file_manager.list_bit_files(os.path.join(fpga_dir, "build"))
-      if not bitstream_files:
-          print(colorama.Fore.RED + "Error: No bitstream (.bit) file found in fpga/build.")
-          sys.exit(1)
+        self.bitstream_files = self.file_manager.list_bit_files(os.path.join(FPGA_DIR, "build"))
 
-      results_dir = os.path.join(PROJECT_DIR, "results")
-      os.makedirs(results_dir, exist_ok=True)
+        results_dir = os.path.join(PROJECT_DIR, "results")
+        os.makedirs(results_dir, exist_ok=True)
 
-      for bitstream_file in bitstream_files:
-          shutil.copy(bitstream_file, results_dir)
-      print(f"Copied bitstream(s) to {results_dir}")
+        for bitstream_file in self.bitstream_files:
+            shutil.copy(bitstream_file, results_dir)
+        print(f"Copied bitstream(s) to {results_dir}")
 
-      self.get_warning_summary()
+        self.get_warning_summary()
 
-      print(colorama.Fore.GREEN + "Bitstream generation and logging completed successfully.")
+        print(colorama.Fore.GREEN + f"Bitstream generated in {time_min} min. {time_sec} sec.")
       
     def program_fpga(self):
         vivado_bin = os.path.join(VIVADO_DIR, "bin")
         os.environ["PATH"] = vivado_bin + os.pathsep + os.environ["PATH"]
 
-
-        bitstream_files = glob.glob(os.path.join(PROJECT_DIR, "results", "*.bit"))
-
-        if not bitstream_files:
-            print(colorama.Fore.RED + "Error: No .bit file found in the results directory.")
-            sys.exit(1)
-
-        bitstream_file = bitstream_files[0] 
-        tcl_script = os.path.join(PROJECT_DIR, "fpga", "scripts", "program_fpga.tcl")
+        self.bitstream_files = self.file_manager.list_bit_files(os.path.join(PROJECT_DIR, "results"))
+        bitstream_file = self.bitstream_files[0] 
+        tcl_script = os.path.join(self.TOOLS_DIR, "scripts", "program_fpga.tcl")
 
 
         command = f'{VIVADO_DIR}/vivado.bat -mode tcl -source "{tcl_script}" -tclargs "{bitstream_file}"'
@@ -78,26 +79,25 @@ class VivadoWrapper:
         except subprocess.CalledProcessError:
             print(colorama.Fore.RED + "Error: Failed to clean untracked files. Make sure this is a valid git repository.")
             sys.exit(1)
-            
-            
+                 
     def get_warning_summary(self):
         
-        PROJECT_PATH = os.path.join("fpga", "build")
-        LOG_FILE = os.path.join("results", "warning_summary.log")
+        build_search_path = os.path.join("fpga", "build")
+        warning_summary_log = os.path.join("results", "warning_summary.log")
 
-        SYNTH_IGNORE = re.compile(r"\[Constraints\s18-5210\]|\[Netlist\s29-345\]")
+        SYNTH_IGNORE = re.compile(r"\[Constraints\s18-5210\]|\[Netlist\s29-345\]|\[Synth\s8-6014\]|\[Synth\s8-7129\]")
         IMPL_IGNORE = re.compile(r"replace_with_codes_to_be_ignored_only_when_justified")
         
-        os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+        os.makedirs(os.path.dirname(warning_summary_log), exist_ok=True)
 
 
-        with open(LOG_FILE, "w") as log:
+        with open(warning_summary_log, "w") as log:
             log.write("Warnings, critical warnings, and errors from synthesis and implementation\n")
             log.write(f"Created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
 
             # ---- SYNTHESIS ----
             log.write("----SYNTHESIS----\n")
-            synth_logs = glob.glob(os.path.join(PROJECT_PATH, "*.runs", "synth_1", "runme.log"))
+            synth_logs = glob.glob(os.path.join(build_search_path, "*.runs", "synth_1", "runme.log"))
 
             if synth_logs:
                 found_warnings = False
@@ -114,7 +114,7 @@ class VivadoWrapper:
             log.write("\n----IMPLEMENTATION----\n")
             
             # ---- IMPLEMENTATION ----
-            impl_logs = glob.glob(os.path.join(PROJECT_PATH, "*.runs", "impl_1", "runme.log"))
+            impl_logs = glob.glob(os.path.join(build_search_path, "*.runs", "impl_1", "runme.log"))
 
             if impl_logs:
                 found_warnings = False
@@ -129,26 +129,25 @@ class VivadoWrapper:
                 log.write("No implementation log file found!\n")
 
 
-        with open(LOG_FILE, "r") as file:
+        with open(warning_summary_log, "r") as file:
             log_content = file.read()
 
         log_content = re.sub(r"[A-Za-z]:\\.*?\\fpga\\build\\", "", log_content)
 
-        with open(LOG_FILE, "w") as file:
+        with open(warning_summary_log, "w") as file:
             file.write(log_content)
 
-        print(f"Log summary saved to {LOG_FILE}")
+        print(f"Log summary saved to {warning_summary_log}")
+        
 
 
 
 def main():
-    # Set up argument parser
     parser = argparse.ArgumentParser(
         description="Vivado Project Management Tool",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     
-    # Add arguments
     parser.add_argument(
         "-g", "--generate_bitstream",
         action="store_true",
@@ -170,7 +169,6 @@ def main():
         help="Extracts warnings and errors from synthesis and implementation logs"
     )
     
-    # Parse arguments
     args = parser.parse_args()
     vivado = VivadoWrapper()
     
